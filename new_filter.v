@@ -1,0 +1,81 @@
+module Filter(input CLK,
+              input RST,
+              input IN,
+              output reg [7:0] OUT);
+  
+  // Declaring the filter parameters
+  parameter a0 = 1;
+  parameter a1 = -2;
+  parameter a2 = 1;
+  
+  // Declaring the circular averaging buffer
+  parameter BUF_SIZE = 64;
+  reg [7:0] buffer [0:BUF_SIZE-1];
+  reg [6:0] buf_counter;
+  
+  // Downsampling counter
+  reg [6:0] ds_counter;
+  
+  // Filter state variables
+  reg x;
+  reg y1;
+  reg y2;
+
+  // Integer used for loops
+  integer i;
+	
+  reg [9:0] sum;
+  reg [7:0] avg;
+  
+  always @ (posedge CLK or negedge RST) begin
+    if(RST == 0) begin
+      // Reset output to 0
+      OUT <= 0;
+      
+      // Reset the filter state variables
+      y1 <= 0;
+      y2 <= 0;
+      
+      // Reset the averaging buffer
+      buf_counter <= 0;
+      for (i = 0; i < BUF_SIZE; i=i+1) begin
+        buffer[i] <= 0;
+      end
+      
+      // Reset the downsample counter
+      ds_counter <= 0;
+      
+    end
+    else begin
+      // Filter the input sample and add it to the buffer
+      x <= IN;
+      buffer[buf_counter] <= a0 * x + a1 * y1 + a2 * y2;
+      
+      // Update the filter state variables
+      y2 <= y1;
+      y1 <= IN;
+      
+      // Increase the counter and reset to 0 if it gets to 64
+      buf_counter <= buf_counter + 1;
+      if (buf_counter == BUF_SIZE) begin
+        buf_counter <= 0;
+      end
+      
+      // Compute the running average of the buffer
+      sum <= 0;
+      for (i = 0; i < BUF_SIZE; i = i + 1) begin
+        sum <= sum + buffer[i];
+      end
+      avg <= sum / BUF_SIZE;
+      
+      // Downsample output by selecting one in every 64 samples
+      ds_counter <= ds_counter + 1;
+      if (ds_counter == 64) begin
+        OUT <= avg;
+        ds_counter <= 0;
+      end else begin
+        OUT <= 0;
+      end
+    end
+  end
+endmodule
