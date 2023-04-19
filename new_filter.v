@@ -17,14 +17,14 @@ module Filter(input CLK,
   reg [6:0] ds_counter;
   
   // Filter state variables
-  reg x;
-  reg y1;
-  reg y2;
+  reg [7:0] x;
+  reg [7:0] y1;
+  reg [7:0] y2;
 
   // Integer used for loops
   integer i;
 	
-  reg [9:0] sum;
+  reg signed [9:0] sum;
   reg [7:0] avg;
   
   always @ (posedge CLK or negedge RST) begin
@@ -50,10 +50,10 @@ module Filter(input CLK,
       // Filter the input sample and add it to the buffer
       x <= IN;
       buffer[buf_counter] <= a0 * x + a1 * y1 + a2 * y2;
-      
+
       // Update the filter state variables
       y2 <= y1;
-      y1 <= IN;
+      y1 <= x;
       
       // Increase the counter and reset to 0 if it gets to 64
       buf_counter <= buf_counter + 1;
@@ -62,9 +62,9 @@ module Filter(input CLK,
       end
       
       // Compute the running average of the buffer
-      sum <= 0;
+      sum = 0;
       for (i = 0; i < BUF_SIZE; i = i + 1) begin
-        sum <= sum + buffer[i];
+        sum = sum + buffer[i];
       end
       avg <= sum / BUF_SIZE;
       
