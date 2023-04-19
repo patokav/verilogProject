@@ -5,7 +5,7 @@ module Filter(input CLK,
     
   reg [7:0] MEM [0:63];
   reg [7:0] VAL;
-  reg [7:0] COUNT;
+  reg [6:0] COUNT;
   reg [11:0] AVG;
 
   reg FLAG;
