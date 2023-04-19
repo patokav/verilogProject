@@ -16,7 +16,7 @@ module Filter_TB();
   );
 
   initial begin
-    $monitor ("reset = %d in = %b out = %b", rst, in, out);
+    $monitor ("out = %b", out);
     $dumpfile("dump.vcd");
     $dumpvars(2);
     
@@ -32,14 +32,14 @@ module Filter_TB();
     // data upload 1    xxV0123456789ABC?
     dataword <= 128'h02FF37abc326a7202381f0FF2a23f6be;
     #6425
-    //dataword = 128'h3864292ae9600269F0FF73abc3b7a721;
-    //#200
-    //dataword = 128'h02395830aFF2a23FFbe3864792ae9603;
-    //#200
-    //dataword = 128'h312899abc02138698329aef923073785;
-    //#200
-    //dataword = 128'h0239830aFF2a23698329aef923073785;
-    //#10
+    dataword = 128'h3864292ae9600269F0FF73abc3b7a721;
+    #6425
+    dataword = 128'h02395830aFF2a23FFbe3864792ae9603;
+    #6425
+    dataword = 128'h312899abc02138698329aef923073785;
+    #6425
+    dataword = 128'h0239830aFF2a23698329aef923073785;
+    #6425
 
     #10 $finish;
   end
