@@ -30,7 +30,9 @@ module Filter_TB();
     rst <= 1'b1;
 
     // data upload 1    xxV0123456789ABC?
-    dataword <= 128'h02FF37abc326a7202381f0FF2a23f6be;
+    dataword = 128'h00000000000000000000000000000000;
+    #6425
+    dataword = 128'h02FF37abc326a7202381f0FF2a23f6be;
     #6425
     dataword = 128'h3864292ae9600269F0FF73abc3b7a721;
     #6425
@@ -39,6 +41,8 @@ module Filter_TB();
     dataword = 128'h312899abc02138698329aef923073785;
     #6425
     dataword = 128'h0239830aFF2a23698329aef923073785;
+    #6425
+    dataword = 128'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
     #6425
 
     #10 $finish;
