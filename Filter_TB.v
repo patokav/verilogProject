@@ -1,4 +1,4 @@
-// Testbench code for Filter & Decimator     64/44=16/11 //`time scale sets how long sim cycle lasts
+// Testbench code for Filter & Decimator     
 module Filter_TB();
  
   reg clk;
@@ -16,13 +16,15 @@ module Filter_TB();
   );
 
   initial begin
-    $monitor ("out = %b", out);
+    
     $dumpfile("dump.vcd");
     $dumpvars(2);
     
   	clk = 1'b0;
     in = 1'b0;
     dataword = 0;
+    
+    //reset at start to set values
     rst = 1'b1;
     #100
     rst <= 1'b0;
@@ -30,8 +32,8 @@ module Filter_TB();
     rst <= 1'b1;
 
     // data upload 1    xxV0123456789ABC?
-    dataword = 128'h00000000000000000000000000000000;
-    #6425
+    dataword = 128'h00000000000000000000000000000000; 
+    #6425 //edge case ^
     dataword = 128'h02FF37abc326a7202381f0FF2a23f6be;
     #6425
     dataword = 128'h3864292ae9600269F0FF73abc3b7a721;
@@ -41,17 +43,19 @@ module Filter_TB();
     dataword = 128'h312899abc02138698329aef923073785;
     #6425
     dataword = 128'h0239830aFF2a23698329aef923073785;
-    #6425
+    #6425 
     dataword = 128'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-    #6425
+    #6425 //edge case ^
 
-    #10 $finish;
+   $finish;
   end
 
-  always #5
+  always #25
   begin
     clk <= ~clk;
   end
+  always #50
+  $display ("%d", in);
 
   always @(posedge clk) begin
     in <= dataword[127];
