@@ -2,72 +2,82 @@ module Filter(input CLK,
               input RST,
               input IN,
               output reg [7:0] OUT);
-    
-  reg [7:0] MEM [0:63];
-  reg [7:0] VAL;
-  reg [6:0] COUNT;
-  reg [11:0] AVG;
+ 
+  // Declaring the filter parameters
+  parameter a0 = 1;
+  parameter a1 = -2;
+  parameter a2 = 1;
+ 
+  // Declaring the circular averaging buffer
+  parameter BUF_SIZE = 64;
+  reg [7:0] buffer [0:BUF_SIZE-1];
+  reg [6:0] buf_counter;
+ 
+  // Downsampling counter
+  reg [6:0] ds_counter;
+ 
+  // Filter state variables
+  reg [7:0] x;
+  reg [7:0] y1;
+  reg [7:0] y2;
 
-  reg FLAG;
-
-  reg V1;
-  reg V2; //delayed by 1 clock
-  reg V3; //delayed by 2 clocks
-
+  // Integer used for loops
   integer i;
 
-  //holds for calcs
-  reg H2;
-
-  //filter = x1-2x2+x3
-
+  reg signed [9:0] sum;
+  reg [7:0] avg;
+ 
   always @ (posedge CLK or negedge RST) begin
     if(RST == 0) begin
-      FLAG <= 1'b0;
-      VAL <= 0;
-      V1 <= 0;
-      V2 <= 0;
-      V3 <= 0;
-      H2 <= 0;
-      COUNT <= 0;
-      
-      for (i = 0; i < 64; i=i+1) begin
-        MEM[i] <= 0;
+      // Reset output to 0
+      OUT <= 0;
+     
+      // Reset the filter state variables
+      y1 <= 0;
+      y2 <= 0;
+     
+      // Reset the averaging buffer
+      buf_counter <= 0;
+      for (i = 0; i < BUF_SIZE; i=i+1) begin
+        buffer[i] = 0;
       end
+     
+      // Reset the downsample counter
+      ds_counter <= 0;
+     
     end
     else begin
-      if(COUNT==63) begin
-        V3 <= V2; // moving the values along the chain with 1 cycle delay
-        V2 <= V1;
-        V1 <= IN; // moving the values along the chain with 1 cycle delay
-        FLAG <= 1'b1;
-        COUNT <= 0;
+      // Filter the input sample and add it to the buffer
+      x <= IN;
+      buffer[buf_counter] = (IN + y2 > 2 * y1) ? IN - 2*y1 + y2 : 0;
+      //OUT = buffer[buf_counter];
+      // Update the filter state variables
+      y2 <= y1;
+      y1 <= x;
+     
+      // Increase the counter and reset to 0 if it gets to 64
+      buf_counter <= (buf_counter == BUF_SIZE - 1) ? 0 : buf_counter + 1;
+      
+      // Compute the running average of the buffer
+      sum = 0;
+      for (i = 0; i < BUF_SIZE; i = i + 1) begin
+        sum = sum + buffer[i];
       end
-      else begin
-        COUNT++;
+      // avg <= ((sum*10) / BUF_SIZE);
+      if(((sum*10) / BUF_SIZE)<5) //avoids flooring when getting avg
+        avg <= 0;
+      else
+        avg <= 1;
+     
+      // Downsample output by selecting one in every 64 samples
+      ds_counter <= ds_counter + 1;
+      if (ds_counter == 64) begin
+        OUT <= avg;
+        ds_counter <= 0;
+      end else begin
+        OUT <= 0;
       end
-    end
-  end
-
-  always @ (V2) begin
-    H2 <= (V2 << 1); //multiply by 2
-  end
-
-  always @ (V1 or H2 or V3) begin
-    VAL <= (V1 - H2 + V3);
-  end
-
-  always @ (COUNT) begin
-    i <= 0;
-    MEM[COUNT] <= VAL; //using COUNT to iterate over array
-
-    if (FLAG) begin
-      AVG <= 0;
-      for(i=0; i < 64; i = i + 1) begin
-        AVG <= AVG + MEM[i];
-      end
-
-      OUT <= AVG >> 6;
+      
     end
   end
 endmodule
