@@ -1,3 +1,4 @@
+//filter and decimator
 module Filter(input CLK,
               input RST,
               input IN,
@@ -65,7 +66,7 @@ module Filter(input CLK,
       end
       // avg <= ((sum*10) / BUF_SIZE);
       if(((sum*10) / BUF_SIZE)<5) //avoids flooring when getting avg
-        avg <= 0;
+        avg <= (sum*) / BUF_SIZE;
       else
         avg <= 1;
      

@@ -19,7 +19,7 @@ module Filter_TB();
     
     $dumpfile("dump.vcd");
     $dumpvars(2);
-    $monitor("%d", out);
+    $monitor("out=%d", out);
     
   	clk = 1'b0;
     in = 1'b0;
@@ -56,8 +56,6 @@ module Filter_TB();
     clk <= ~clk;
   end
   
-  // always #50
-  // $display ("%d", in);
 
   always @(posedge clk) begin
     in <= dataword[127];
