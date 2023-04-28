@@ -48,10 +48,10 @@ module Filter(input CLK,
      
     end
     else begin
-      // Filter the input sample and add it to the buffer
+      // Filter the input sample and add it to the buffer. The ternary operator
+      // prevents rollover.
       x <= IN;
-      buffer[buf_counter] = (IN + y2 > 2 * y1) ? IN - 2*y1 + y2 : 0;
-      //OUT = buffer[buf_counter];
+      buffer[buf_counter] = (IN + y2 > 2 * y1) ? a0 * IN + a1 * y1 + a2 * y2 : 0;
       // Update the filter state variables
       y2 <= y1;
       y1 <= x;
@@ -64,11 +64,11 @@ module Filter(input CLK,
       for (i = 0; i < BUF_SIZE; i = i + 1) begin
         sum = sum + buffer[i];
       end
-      // avg <= ((sum*10) / BUF_SIZE);
-      if(((sum*10) / BUF_SIZE)<5) //avoids flooring when getting avg
-        avg <= (sum*) / BUF_SIZE;
-      else
-        avg <= 1;
+      
+      // Getting the average of the buffer values. The ternary prevents
+      // the flooring when dividing, by rounding to the closest int
+      // between 0 and 1
+      avg <= ((sum * 10) / BUF_SIZE < 5) ? 0 : 1;
      
       // Downsample output by selecting one in every 64 samples
       ds_counter <= ds_counter + 1;
